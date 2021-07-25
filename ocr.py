@@ -2,35 +2,58 @@ from PIL import Image
 import sys
 import pyocr
 import datetime
+import os
 
 argc = len(sys.argv)
 
 if argc == 1:
-  inputFile = sys.stdin
+	inputFile = sys.stdin
 elif argc == 2 or argc == 3:
 	try:
-		open(sys.argv[1], 'r')
 		inputFile = sys.argv[1]
+		with open(inputFile) as f:
+			tools = pyocr.get_available_tools()
+			tool = tools[0]
+
+			txt = tool.image_to_string(
+				Image.open(inputFile),
+				lang='eng',
+				builder=pyocr.builders.TextBuilder()
+			)
+
+		newDir = sys.argv[2] + '/'
+		os.makedirs(newDir)
+		newResultFile = newDir + 'ocr_result.txt'
+
+		f = open(newResultFile, 'w')
+		f.write(txt)
+		f.close()
+
+		with open(newResultFile) as newF:
+			data = newF.read()
+			words = {}
+			for word in data.split():
+				words[word] = words.get(word, 0) + 1
+		d = [(v, k) for k, v in words.items()]
+		d.sort()
+		d.reverse()
+
+		countWords = []
+
+		for count, word in d[:100]:
+			countWords.append(str(count) + ' ' + word)
+
+		newWordsFile = newDir + 'words.txt'
+
+		f = open(newWordsFile, 'w')
+		f.write('\n'.join(countWords))
+		f.close()
+
+		print("done")
+	except ValueError:
+		print("Oops! Your input output file name is already exists.")
 	except FileNotFoundError:
 		sys.exit('nl: No such file or directory: ' + sys.argv[1])
 
 else:
 	sys.exit('usage: nl [file]')
-
-tools = pyocr.get_available_tools()
-tool = tools[0]
-
-txt = tool.image_to_string(
-  Image.open(inputFile),
-  lang='eng',
-  builder=pyocr.builders.TextBuilder()
-)
-
-try:
-	now = datetime.datetime.now()
-	f = open(now.strftime('%Y%m%d_%H%M%S') + '.txt', 'x')
-	f.write(txt)
-except ValueError:
-	print("Oops! Your input output file name is already exists.")
-
-f.close()
