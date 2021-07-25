@@ -4,6 +4,16 @@ import pyocr
 import datetime
 import os
 
+# pip install requests
+import requests
+import json
+
+def getBookInfo(isbn):
+	url = 'https://www.googleapis.com/books/v1/volumes?q=isbn:'
+	req_url = url + isbn
+	response = requests.get(req_url)
+	return response.text
+
 argc = len(sys.argv)
 
 if argc == 1:
@@ -21,7 +31,10 @@ elif argc == 2 or argc == 3:
 				builder=pyocr.builders.TextBuilder()
 			)
 
-		newDir = sys.argv[2] + '/'
+		bookInfo = getBookInfo(sys.argv[2])
+		title = json.loads(bookInfo)['items'][0]['volumeInfo']['title']
+
+		newDir = title + '/'
 		os.makedirs(newDir)
 		newResultFile = newDir + 'ocr_result.txt'
 
