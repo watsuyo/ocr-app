@@ -1,11 +1,8 @@
 from PIL import Image
 import sys
 import pyocr
-import datetime
 import os
-import shutil
 import json
-import re
 
 # pip install requests
 import requests
@@ -135,7 +132,7 @@ def create_words(data, txt):
 	obj['newDir'] = newDir
 	return	obj
 
-def hoge():
+def main():
 	argc = len(sys.argv)
 
 	if argc == 1:
@@ -172,4 +169,4 @@ def hoge():
 	else:
 		sys.exit('usage: nl [file]')
 
-hoge()
+main()
